@@ -100,6 +100,9 @@ func NewPlayer(name string) *Player {
 }
 
 func (m *Match) Join(player *Player) error {
+	if _, exists := m.playerIDs[player.ID]; exists {
+		return errors.New("player already registred")
+	}
 	if m.PlayerOne == nil {
 		log.Println("registering player one")
 		m.PlayerOne = player
