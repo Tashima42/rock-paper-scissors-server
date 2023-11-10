@@ -52,13 +52,13 @@ var moveResults map[MoveType]map[MoveType]MoveResult = map[MoveType]map[MoveType
 }
 
 type Game struct {
-	matches []*Match
+	matches map[string]*Match // id: match
 }
 
 type Match struct {
 	ID            string  `json:"id"`
 	PlayerOne     *Player `json:"playerOne"`
-	playerTwo     *Player
+	PlayerTwo     *Player `json:"playerTwo"`
 	playerOneMove *MoveType
 	playerTwoMove *MoveType
 	playerIDs     map[string]PlayerNumber
@@ -73,14 +73,16 @@ type Player struct {
 }
 
 func NewGame() *Game {
-	return new(Game)
+	return &Game{
+		matches: map[string]*Match{},
+	}
 }
 
 func (g *Game) NewMatch(maxScore int) *Match {
 	match := &Match{
 		ID:            pseudoRandomID(5),
 		PlayerOne:     nil,
-		playerTwo:     nil,
+		PlayerTwo:     nil,
 		playerOneMove: nil,
 		playerTwoMove: nil,
 		MatchStarted:  false,
@@ -88,7 +90,7 @@ func (g *Game) NewMatch(maxScore int) *Match {
 		scores:        map[string]int{},
 		MaxScore:      maxScore,
 	}
-	g.matches = append(g.matches, match)
+	g.matches[match.ID] = match
 	return match
 }
 
@@ -108,9 +110,9 @@ func (m *Match) Join(player *Player) error {
 		m.PlayerOne = player
 		m.playerIDs[player.ID] = PlayerNumberOne
 		return nil
-	} else if m.playerTwo == nil {
+	} else if m.PlayerTwo == nil {
 		log.Println("registering player two")
-		m.playerTwo = player
+		m.PlayerTwo = player
 		m.playerIDs[player.ID] = PlayerNumberTwo
 		return nil
 	}
@@ -119,7 +121,7 @@ func (m *Match) Join(player *Player) error {
 }
 
 func (m *Match) Start() error {
-	if m.PlayerOne == nil || m.playerTwo == nil {
+	if m.PlayerOne == nil || m.PlayerTwo == nil {
 		return ErrInvalidPlayerSize
 	}
 	m.MatchStarted = true
@@ -163,7 +165,7 @@ func (m *Match) Play(move MoveType, playerID string) (MoveResult, error) {
 			m.scores[m.PlayerOne.ID] += 1
 		case MoveResultLost:
 			log.Println("player two won")
-			m.scores[m.playerTwo.ID] += 1
+			m.scores[m.PlayerTwo.ID] += 1
 		}
 		m.playerOneMove = nil
 		m.playerTwoMove = nil
@@ -184,8 +186,29 @@ func (p *Player) GetID() string {
 	return p.ID
 }
 
+func (g *Game) GetMatch(id string) (*Match, error) {
+	m, ok := g.matches[id]
+	if !ok {
+		return nil, errors.New("match not found")
+	}
+	return m, nil
+}
+
+func (g *Game) GetMatches() []*Match {
+	matches := []*Match{}
+	for _, m := range g.matches {
+		matches = append(matches, m)
+	}
+	return matches
+}
+
+func (m *Match) IsOneOfPlayers(playerID string) bool {
+	_, ok := m.playerIDs[playerID]
+	return ok
+}
+
 func pseudoRandomID(length int) string {
-	letters := []rune("abcdefghijklmnopqrstuvwxyz123456789=*%#@!?")
+	letters := []rune("abcdefghijklmnopqrstuvwxyz123456789=*&@!")
 	b := make([]rune, length)
 	for i := range b {
 		b[i] = letters[rand.Intn(len(letters))]

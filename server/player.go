@@ -33,5 +33,6 @@ func (c *Controller) registerPlayer(ctx *fiber.Ctx) error {
 		HTTPOnly: true,
 		Secure:   true,
 	})
+
 	return ctx.JSON(map[string]interface{}{"player": player, "sessionToken": jwt})
 }
