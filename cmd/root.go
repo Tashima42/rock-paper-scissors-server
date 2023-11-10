@@ -24,8 +24,8 @@ func NewRootCommand() *cli.App {
 		},
 		Action: func(ctx *cli.Context) error {
 			port := ctx.String("port")
-			// jwtSecret := ctx.String("jwt-secret")
-			return server.Serve(port)
+			jwtSecret := ctx.String("jwt-secret")
+			return server.Serve(port, []byte(jwtSecret))
 		},
 	})
 	return app

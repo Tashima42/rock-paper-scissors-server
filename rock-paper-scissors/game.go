@@ -56,20 +56,20 @@ type Game struct {
 }
 
 type Match struct {
-	id            string
-	playerOne     *Player
+	ID            string  `json:"id"`
+	PlayerOne     *Player `json:"playerOne"`
 	playerTwo     *Player
 	playerOneMove *MoveType
 	playerTwoMove *MoveType
 	playerIDs     map[string]PlayerNumber
-	matchStarted  bool
+	MatchStarted  bool           `json:"matchStarted"`
 	scores        map[string]int // "playerID": score
-	maxScore      int
+	MaxScore      int            `json:"maxScore"`
 }
 
 type Player struct {
-	id   string
-	name string
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 func NewGame() *Game {
@@ -78,15 +78,15 @@ func NewGame() *Game {
 
 func (g *Game) NewMatch(maxScore int) *Match {
 	match := &Match{
-		id:            pseudoRandomID(5),
-		playerOne:     nil,
+		ID:            pseudoRandomID(5),
+		PlayerOne:     nil,
 		playerTwo:     nil,
 		playerOneMove: nil,
 		playerTwoMove: nil,
-		matchStarted:  false,
+		MatchStarted:  false,
 		playerIDs:     map[string]PlayerNumber{},
 		scores:        map[string]int{},
-		maxScore:      maxScore,
+		MaxScore:      maxScore,
 	}
 	g.matches = append(g.matches, match)
 	return match
@@ -94,21 +94,21 @@ func (g *Game) NewMatch(maxScore int) *Match {
 
 func NewPlayer(name string) *Player {
 	return &Player{
-		id:   pseudoRandomID(5),
-		name: name,
+		ID:   pseudoRandomID(5),
+		Name: name,
 	}
 }
 
 func (m *Match) Join(player *Player) error {
-	if m.playerOne == nil {
+	if m.PlayerOne == nil {
 		log.Println("registering player one")
-		m.playerOne = player
-		m.playerIDs[player.id] = PlayerNumberOne
+		m.PlayerOne = player
+		m.playerIDs[player.ID] = PlayerNumberOne
 		return nil
 	} else if m.playerTwo == nil {
 		log.Println("registering player two")
 		m.playerTwo = player
-		m.playerIDs[player.id] = PlayerNumberTwo
+		m.playerIDs[player.ID] = PlayerNumberTwo
 		return nil
 	}
 	log.Println("all places are occupied")
@@ -116,16 +116,16 @@ func (m *Match) Join(player *Player) error {
 }
 
 func (m *Match) Start() error {
-	if m.playerOne == nil || m.playerTwo == nil {
+	if m.PlayerOne == nil || m.playerTwo == nil {
 		return ErrInvalidPlayerSize
 	}
-	m.matchStarted = true
+	m.MatchStarted = true
 	return nil
 }
 
 func (m *Match) Play(move MoveType, playerID string) (MoveResult, error) {
 	log.Println("playing")
-	if !m.matchStarted {
+	if !m.MatchStarted {
 		log.Println("match not started")
 		return MoveResultNotCompleted, ErrMatchNotStarted
 	}
@@ -157,10 +157,10 @@ func (m *Match) Play(move MoveType, playerID string) (MoveResult, error) {
 		switch result {
 		case MoveResultWon:
 			log.Println("player one won")
-			m.scores[m.playerOne.id] += 1
+			m.scores[m.PlayerOne.ID] += 1
 		case MoveResultLost:
 			log.Println("player two won")
-			m.scores[m.playerTwo.id] += 1
+			m.scores[m.playerTwo.ID] += 1
 		}
 		m.playerOneMove = nil
 		m.playerTwoMove = nil
@@ -178,7 +178,7 @@ func (m *Match) getPlayerNumberByID(id string) (PlayerNumber, error) {
 }
 
 func (p *Player) GetID() string {
-	return p.id
+	return p.ID
 }
 
 func pseudoRandomID(length int) string {
